@@ -1,0 +1,20 @@
+{
+    "python.autoComplete.extraPaths": [
+        "/home/studi/neobotix_workspace/install/neo_ur_moveit_config/local/lib/python3.10/dist-packages",
+        "/home/studi/neobotix_workspace/install/neo_srvs2/local/lib/python3.10/dist-packages",
+        "/home/studi/neobotix_workspace/install/neo_msgs2/local/lib/python3.10/dist-packages",
+        "/home/studi/neobotix_real_workspace/install/neo_srvs2/local/lib/python3.10/dist-packages",
+        "/home/studi/neobotix_real_workspace/install/neo_msgs2/local/lib/python3.10/dist-packages",
+        "/opt/ros/humble/lib/python3.10/site-packages",
+        "/opt/ros/humble/local/lib/python3.10/dist-packages"
+    ],
+    "python.analysis.extraPaths": [
+        "/home/studi/neobotix_workspace/install/neo_ur_moveit_config/local/lib/python3.10/dist-packages",
+        "/home/studi/neobotix_workspace/install/neo_srvs2/local/lib/python3.10/dist-packages",
+        "/home/studi/neobotix_workspace/install/neo_msgs2/local/lib/python3.10/dist-packages",
+        "/home/studi/neobotix_real_workspace/install/neo_srvs2/local/lib/python3.10/dist-packages",
+        "/home/studi/neobotix_real_workspace/install/neo_msgs2/local/lib/python3.10/dist-packages",
+        "/opt/ros/humble/lib/python3.10/site-packages",
+        "/opt/ros/humble/local/lib/python3.10/dist-packages"
+    ]
+}

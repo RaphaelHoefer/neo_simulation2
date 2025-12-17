@@ -1,0 +1,232 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!--
+    Intel RealSense D435 Camera Macro for Classic Gazebo
+
+    This macro creates a simulated RealSense D435 depth camera with:
+    - RGB camera (color images)
+    - Depth camera (depth images and point cloud)
+    - Proper optical frames for ROS conventions
+
+    Usage:
+      <xacro:gazebo_d435_camera
+          camera_name="camera"
+          parent_link="base_link"
+          update_rate="30"
+          >
+          <origin xyz="0.38 0.0 0.30" rpy="0 0 0"/>
+      </xacro:gazebo_d435_camera>
+  -->
+
+  <xacro:macro name="gazebo_d435_camera" params="camera_name parent_link update_rate:=30 *origin">
+
+    <!-- D435 Physical Dimensions (in meters) -->
+    <xacro:property name="d435_width" value="0.090"/>
+    <xacro:property name="d435_height" value="0.025"/>
+    <xacro:property name="d435_depth" value="0.025"/>
+    <xacro:property name="d435_mass" value="0.072"/>
+
+    <!-- Camera mounting offset (optical center offset from housing) -->
+    <xacro:property name="d435_cam_depth_to_left_ir_offset" value="0.0"/>
+    <xacro:property name="d435_cam_depth_to_right_ir_offset" value="-0.050"/>
+    <xacro:property name="d435_cam_depth_to_color_offset" value="0.015"/>
+
+    <!-- =========================================================================== -->
+    <!-- Camera Base Link -->
+    <!-- =========================================================================== -->
+    <joint name="${camera_name}_joint" type="fixed">
+      <xacro:insert_block name="origin"/>
+      <parent link="${parent_link}"/>
+      <child link="${camera_name}_link"/>
+    </joint>
+
+    <link name="${camera_name}_link">
+      <inertial>
+        <mass value="${d435_mass}"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <inertia ixx="0.0001" ixy="0.0" ixz="0.0"
+                 iyy="0.0001" iyz="0.0"
+                 izz="0.0001"/>
+      </inertial>
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <box size="${d435_depth} ${d435_width} ${d435_height}"/>
+        </geometry>
+        <material name="camera_aluminum">
+          <color rgba="0.5 0.5 0.5 1.0"/>
+        </material>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <box size="${d435_depth} ${d435_width} ${d435_height}"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <!-- Gazebo material -->
+    <gazebo reference="${camera_name}_link">
+      <material>Gazebo/FlatBlack</material>
+    </gazebo>
+
+    <!-- =========================================================================== -->
+    <!-- Depth Camera Frames -->
+    <!-- =========================================================================== -->
+    <joint name="${camera_name}_depth_joint" type="fixed">
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <parent link="${camera_name}_link"/>
+      <child link="${camera_name}_depth_frame"/>
+    </joint>
+
+    <link name="${camera_name}_depth_frame"/>
+
+    <!-- Depth Optical Frame (Z forward, X right, Y down - standard ROS camera convention) -->
+    <joint name="${camera_name}_depth_optical_joint" type="fixed">
+      <origin xyz="0 0 0" rpy="${-pi/2} 0 ${-pi/2}"/>
+      <parent link="${camera_name}_depth_frame"/>
+      <child link="${camera_name}_depth_optical_frame"/>
+    </joint>
+
+    <link name="${camera_name}_depth_optical_frame"/>
+
+    <!-- =========================================================================== -->
+    <!-- Color Camera Frames -->
+    <!-- =========================================================================== -->
+    <joint name="${camera_name}_color_joint" type="fixed">
+      <origin xyz="0 ${d435_cam_depth_to_color_offset} 0" rpy="0 0 0"/>
+      <parent link="${camera_name}_depth_frame"/>
+      <child link="${camera_name}_color_frame"/>
+    </joint>
+
+    <link name="${camera_name}_color_frame"/>
+
+    <!-- Color Optical Frame -->
+    <joint name="${camera_name}_color_optical_joint" type="fixed">
+      <origin xyz="0 0 0" rpy="${-pi/2} 0 ${-pi/2}"/>
+      <parent link="${camera_name}_color_frame"/>
+      <child link="${camera_name}_color_optical_frame"/>
+    </joint>
+
+    <link name="${camera_name}_color_optical_frame"/>
+
+    <!-- =========================================================================== -->
+    <!-- Infrared Camera Frames (optional, for completeness) -->
+    <!-- =========================================================================== -->
+    <!-- Left Infrared -->
+    <joint name="${camera_name}_infra1_joint" type="fixed">
+      <origin xyz="0 ${d435_cam_depth_to_left_ir_offset} 0" rpy="0 0 0"/>
+      <parent link="${camera_name}_depth_frame"/>
+      <child link="${camera_name}_infra1_frame"/>
+    </joint>
+
+    <link name="${camera_name}_infra1_frame"/>
+
+    <joint name="${camera_name}_infra1_optical_joint" type="fixed">
+      <origin xyz="0 0 0" rpy="${-pi/2} 0 ${-pi/2}"/>
+      <parent link="${camera_name}_infra1_frame"/>
+      <child link="${camera_name}_infra1_optical_frame"/>
+    </joint>
+
+    <link name="${camera_name}_infra1_optical_frame"/>
+
+    <!-- Right Infrared -->
+    <joint name="${camera_name}_infra2_joint" type="fixed">
+      <origin xyz="0 ${d435_cam_depth_to_right_ir_offset} 0" rpy="0 0 0"/>
+      <parent link="${camera_name}_depth_frame"/>
+      <child link="${camera_name}_infra2_frame"/>
+    </joint>
+
+    <link name="${camera_name}_infra2_frame"/>
+
+    <joint name="${camera_name}_infra2_optical_joint" type="fixed">
+      <origin xyz="0 0 0" rpy="${-pi/2} 0 ${-pi/2}"/>
+      <parent link="${camera_name}_infra2_frame"/>
+      <child link="${camera_name}_infra2_optical_frame"/>
+    </joint>
+
+    <link name="${camera_name}_infra2_optical_frame"/>
+
+    <!-- =========================================================================== -->
+    <!-- Gazebo Sensors and Plugins -->
+    <!-- =========================================================================== -->
+
+    <!-- RGB Camera Sensor -->
+    <gazebo reference="${camera_name}_color_frame">
+      <sensor name="${camera_name}_color" type="camera">
+        <always_on>true</always_on>
+        <update_rate>${update_rate}</update_rate>
+        <visualize>false</visualize>
+        <camera name="${camera_name}_color">
+          <horizontal_fov>1.211</horizontal_fov>  <!-- 69.4 degrees -->
+          <image>
+            <width>640</width>
+            <height>480</height>
+            <format>R8G8B8</format>
+          </image>
+          <clip>
+            <near>0.1</near>
+            <far>100</far>
+          </clip>
+          <noise>
+            <type>gaussian</type>
+            <mean>0.0</mean>
+            <stddev>0.007</stddev>
+          </noise>
+        </camera>
+        <plugin name="${camera_name}_color_controller" filename="libgazebo_ros_camera.so">
+          <ros>
+            <namespace>${camera_name}</namespace>
+            <remapping>~/image_raw:=color/image_raw</remapping>
+            <remapping>~/camera_info:=color/camera_info</remapping>
+          </ros>
+          <camera_name>color</camera_name>
+          <frame_name>${camera_name}_color_optical_frame</frame_name>
+          <hack_baseline>0.0</hack_baseline>
+        </plugin>
+      </sensor>
+    </gazebo>
+
+    <!-- Depth Camera Sensor -->
+    <gazebo reference="${camera_name}_depth_frame">
+      <sensor name="${camera_name}_depth" type="depth">
+        <always_on>true</always_on>
+        <update_rate>${update_rate}</update_rate>
+        <visualize>false</visualize>
+        <camera name="${camera_name}_depth">
+          <horizontal_fov>1.012</horizontal_fov>  <!-- 58 degrees -->
+          <image>
+            <width>640</width>
+            <height>480</height>
+            <format>R8G8B8</format>
+          </image>
+          <clip>
+            <near>0.2</near>
+            <far>10.0</far>
+          </clip>
+          <noise>
+            <type>gaussian</type>
+            <mean>0.0</mean>
+            <stddev>0.01</stddev>
+          </noise>
+        </camera>
+        <plugin name="${camera_name}_depth_controller" filename="libgazebo_ros_camera.so">
+          <ros>
+            <namespace>${camera_name}</namespace>
+            <remapping>~/image_raw:=depth/image_raw</remapping>
+            <remapping>~/camera_info:=depth/camera_info</remapping>
+            <remapping>~/points:=depth/points</remapping>
+          </ros>
+          <camera_name>depth</camera_name>
+          <frame_name>${camera_name}_depth_optical_frame</frame_name>
+          <hack_baseline>0.0</hack_baseline>
+          <min_depth>0.2</min_depth>
+          <max_depth>10.0</max_depth>
+        </plugin>
+      </sensor>
+    </gazebo>
+
+  </xacro:macro>
+
+</robot>

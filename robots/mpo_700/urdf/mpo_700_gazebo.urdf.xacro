@@ -1,11 +1,17 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="mpo_700">
 
+    <!-- Arguments -->
+    <xacro:arg name="use_camera" default="false"/>
+
     <!-- Include macros -->
     <xacro:include filename="$(find neo_simulation2)/components/common_macro/gazebo_lidar_macro.xacro" />
     <xacro:include filename="$(find neo_simulation2)/components/common_macro/gazebo_object_controller_macro.xacro" />
+    <xacro:if value="$(arg use_camera)">
+        <xacro:include filename="$(find neo_simulation2)/components/common_macro/gazebo_d435_camera_macro.xacro" />
+    </xacro:if>
     <xacro:include filename="$(find neo_simulation2)/robots/mpo_700/urdf/macro/gazebo_mpo_700_wheel_macro.xacro" />
-    
+
     <!-- Properties -->
     <xacro:property name="lidar_1_update_rate" value="40" />
     <xacro:property name="lidar_2_update_rate" value="40" />
@@ -68,6 +74,15 @@
     <!-- SENSORS -->
     <!-- Sick S300 - Comment/Uncomment if required -->
     <!-- <xacro:include filename="$(find neo_simulation2)/robots/mpo_700/xacros/sick_S300.xacro" /> -->
-    <!--Ultrasonics, cameras and IMU's  -->
-      
+
+    <!-- RealSense D435 Camera (optional) -->
+    <xacro:if value="$(arg use_camera)">
+        <xacro:gazebo_d435_camera
+            camera_name="camera"
+            parent_link="base_link"
+            update_rate="30">
+            <origin xyz="0.292 0.0 0.716" rpy="0 0 0"/>
+        </xacro:gazebo_d435_camera>
+    </xacro:if>
+
 </robot>

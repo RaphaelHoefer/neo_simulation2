@@ -4,12 +4,24 @@
 
     <!--set use_gazebo = false for implementation on real robot-->
     <xacro:arg name="use_gazebo" default="true"/>
-    
+
     <!--set use_docking_adapter = true to use adapter with the robot-->
     <xacro:arg name="use_docking_adapter" default="false"/>
 
+    <!--set use_camera = true to include the D435 camera in the simulation-->
+    <xacro:arg name="use_camera" default="false"/>
+
     <!--set arm name to include the arm in the simulation-->
     <xacro:arg name="arm_type" default=""/>
+
+    <!--set gripper type to include gripper (MoveIt compatibility)-->
+    <xacro:arg name="gripper_type" default=""/>
+
+    <!--set use_gripper = true to include gripper (simulation.launch.py compatibility)-->
+    <xacro:arg name="use_gripper" default="false"/>
+
+    <!--set tf_prefix for arm joint names (MoveIt compatibility)-->
+    <xacro:arg name="tf_prefix" default=""/>
 
     <!-- Arm properties-->
     <xacro:property name="arm" value="$(arg arm_type)"/>

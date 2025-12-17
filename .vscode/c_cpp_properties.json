@@ -1,0 +1,30 @@
+{
+  "configurations": [
+    {
+      "browse": {
+        "databaseFilename": "${default}",
+        "limitSymbolsToIncludedHeaders": false
+      },
+      "includePath": [
+        "/home/studi/neobotix_workspace/install/neo_srvs2/include/**",
+        "/home/studi/neobotix_workspace/install/neo_msgs2/include/**",
+        "/home/studi/neobotix_workspace/install/neo_localization2/include/**",
+        "/home/studi/neobotix_workspace/install/neo_local_planner2/include/**",
+        "/home/studi/neobotix_workspace/install/neo_common2/include/**",
+        "/home/studi/neobotix_real_workspace/install/neo_srvs2/include/**",
+        "/home/studi/neobotix_real_workspace/install/neo_msgs2/include/**",
+        "/opt/ros/humble/include/**",
+        "/home/studi/neobotix_workspace/src/neo_common2/include/**",
+        "/home/studi/neobotix_workspace/src/neo_local_planner2/include/**",
+        "/home/studi/neobotix_workspace/src/neo_localization2/include/**",
+        "/usr/include/**"
+      ],
+      "name": "ROS",
+      "intelliSenseMode": "gcc-x64",
+      "compilerPath": "/usr/bin/gcc",
+      "cStandard": "gnu11",
+      "cppStandard": "c++14"
+    }
+  ],
+  "version": 4
+}

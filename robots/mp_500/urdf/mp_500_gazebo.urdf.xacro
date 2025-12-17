@@ -14,8 +14,8 @@
     <xacro:gazebo_diff_drive_plugin
         joint_prefix="wheel"
         update_rate="${diff_drive_plugin_update_rate}"
-        wheel_separation="0.592"
-        wheel_diameter="0.260" 
+        wheel_separation="0.50"
+        wheel_diameter="0.260"
         command_topic="cmd_vel"
         odometry_topic="odom"
         odom_frame="odom"
@@ -43,12 +43,12 @@
     <!--Caster Wheel-->
     <xacro:gazebo_mp_500_caster_wheel
         wheel_prefix="caster_wheel_link"
-        kp="8000.0" 
-        kd="1460.0" 
-        mu1="0.5" 
-        mu2="0.2" 
-        fdir1="1 0 0" 
-        maxVel="3.0" 
+        kp="8000.0"
+        kd="1460.0"
+        mu1="0.0"
+        mu2="0.0"
+        fdir1="1 0 0"
+        maxVel="3.0"
         minDepth="0.00"
     />
 

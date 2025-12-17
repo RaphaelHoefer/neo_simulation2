@@ -2,10 +2,11 @@
 # Author: Pradheep Padmanabhan
 
 import launch
+import re
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription, LaunchContext
 from launch.actions import (DeclareLaunchArgument, IncludeLaunchDescription,
-                            OpaqueFunction, RegisterEventHandler)
+                            OpaqueFunction, RegisterEventHandler, SetEnvironmentVariable)
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
@@ -20,8 +21,8 @@ import xacro
 """
 Description:
 
-This launch file is used to start a ROS2 simulation for a Neobotix robot in a specified environment. 
-It sets up the Gazebo simulator with the chosen robot and environment, 
+This launch file is used to start a ROS2 simulation for a Neobotix robot in a specified environment.
+It sets up the Gazebo simulator with the chosen robot and environment,
 optionally starts the robot state publisher, and enables keyboard teleoperation.
 
 You can launch this file using the following terminal commands:
@@ -31,10 +32,12 @@ You can launch this file using the following terminal commands:
 2. `ros2 launch neo_simulation2 simulation.launch.py my_robot:=mpo_500 world:=neo_track1 arm_type:=ur5e`
    This command launches the simulation with sample values for the arguments.
    !(only mpo_700 and mpo_500 support arms)
+3. `ros2 launch neo_simulation2 simulation.launch.py use_camera:=true`
+   This command launches the simulation with the D435 camera enabled.
 """
 
 # OpaqueFunction is used to perform setup actions during launch through a Python function
-def launch_setup(context: LaunchContext, my_neo_robot_arg, my_neo_env_arg, robot_arm_arg, docking_adapter_arg):
+def launch_setup(context: LaunchContext, my_neo_robot_arg, my_neo_env_arg, robot_arm_arg, docking_adapter_arg, camera_arg, gripper_arg):
     # Create a list to hold all the nodes
     launch_actions = []
     # The perform method of a LaunchConfiguration is called to evaluate its value.
@@ -42,7 +45,22 @@ def launch_setup(context: LaunchContext, my_neo_robot_arg, my_neo_env_arg, robot
     my_neo_environment = my_neo_env_arg.perform(context)
     robot_arm_type = robot_arm_arg.perform(context)
     use_docking_adapter = docking_adapter_arg.perform(context)
+    use_camera = camera_arg.perform(context)
+    use_gripper = gripper_arg.perform(context)
     use_sim_time = True
+
+    # Set GAZEBO_MODEL_PATH for gripper meshes if gripper is enabled
+    if use_gripper == 'true':
+        gripper_model_path = os.path.expanduser('~/gripper_ws/install/robotiq_description/share')
+        existing_gazebo_path = os.environ.get('GAZEBO_MODEL_PATH', '')
+        if existing_gazebo_path:
+            combined_path = f"{gripper_model_path}:{existing_gazebo_path}"
+        else:
+            combined_path = gripper_model_path
+        set_gazebo_model_path = SetEnvironmentVariable(
+            'GAZEBO_MODEL_PATH',
+            combined_path
+        )
 
     robots = ["mpo_700", "mp_400", "mp_500", "mpo_500"]
 
@@ -95,14 +113,18 @@ def launch_setup(context: LaunchContext, my_neo_robot_arg, my_neo_env_arg, robot
     xacro_args = {
         'use_gazebo': 'true',
         'arm_type': robot_arm_type,
-        'use_docking_adapter': use_docking_adapter
+        'use_docking_adapter': use_docking_adapter,
+        'use_camera': use_camera,
+        'use_gripper': use_gripper,
+        'tf_prefix': robot_arm_type + '_' if robot_arm_type else ''
     }
 
     # Use xacro to process the file with the argunments above
     robot_description_file = xacro.process_file(
-        robot_description_xacro, 
+        robot_description_xacro,
         mappings=xacro_args
         ).toxml()
+    robot_description_file = re.sub(r'<!--.*?-->', '', robot_description_file, flags=re.DOTALL)
 
     # Spawning the robot
     spawn_entity = Node(
@@ -143,6 +165,12 @@ def launch_setup(context: LaunchContext, my_neo_robot_arg, my_neo_env_arg, robot
         arguments=["joint_trajectory_controller", "-c", "/controller_manager"],
     )
 
+    gripper_controller_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["robotiq_gripper", "-c", "/controller_manager"],
+    )
+
     # See Issue: https://github.com/ros2/rclpy/issues/1287
     # Cannot delete the newly create file. The user has to delete it on his own
     # Refer documentation for more info
@@ -153,10 +181,15 @@ def launch_setup(context: LaunchContext, my_neo_robot_arg, my_neo_env_arg, robot
     #     )
 
     # The required nodes can just be appended to the launch_actions list
+    # Add GAZEBO_MODEL_PATH if gripper is enabled
+    if use_gripper == 'true':
+        launch_actions.append(set_gazebo_model_path)
     launch_actions.append(start_robot_state_publisher_cmd)
     if robot_arm_type != '':
         launch_actions.append(joint_state_broadcaster_spawner)
         launch_actions.append(initial_joint_controller_spawner_stopped)
+        if use_gripper == 'true':
+            launch_actions.append(gripper_controller_spawner)
     launch_actions.append(gazebo)
     launch_actions.append(spawn_entity)
     launch_actions.append(teleop)
@@ -194,18 +227,32 @@ def generate_launch_description():
         '\t Neobotix: docking_adapter'
     )
 
+    declare_camera_cmd = DeclareLaunchArgument(
+        'use_camera', default_value='false',
+        description='Set true to include the D435 camera in the simulation'
+    )
+
+    declare_gripper_cmd = DeclareLaunchArgument(
+        'use_gripper', default_value='false',
+        description='Set true to include the Robotiq 2F-140 gripper (only works with arms)'
+    )
+
     # Create launch configuration variables for the robot and map name
     my_neo_robot_arg = LaunchConfiguration('my_robot')
     my_neo_env_arg = LaunchConfiguration('world')
     robot_arm_arg = LaunchConfiguration('arm_type')
     docking_adapter_arg = LaunchConfiguration('use_docking_adapter')
+    camera_arg = LaunchConfiguration('use_camera')
+    gripper_arg = LaunchConfiguration('use_gripper')
 
     ld.add_action(declare_my_robot_arg)
     ld.add_action(declare_world_name_arg)
     ld.add_action(declare_arm_type_cmd)
     ld.add_action(declare_docking_adapter_cmd)
+    ld.add_action(declare_camera_cmd)
+    ld.add_action(declare_gripper_cmd)
 
-    context_arguments = [my_neo_robot_arg, my_neo_env_arg, robot_arm_arg, docking_adapter_arg]
+    context_arguments = [my_neo_robot_arg, my_neo_env_arg, robot_arm_arg, docking_adapter_arg, camera_arg, gripper_arg]
 
     opq_function = OpaqueFunction(
         function=launch_setup, 
@@ -215,4 +262,3 @@ def generate_launch_description():
     ld.add_action(opq_function)
 
     return ld
-
