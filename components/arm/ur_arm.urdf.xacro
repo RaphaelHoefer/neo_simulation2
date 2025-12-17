@@ -64,12 +64,7 @@
             <xacro:property name="gripper_type_value" value="$(arg gripper_type)"/>
 
             <!-- Include robotiq gripper if use_gripper is true OR gripper_type is set to 2f_140/2f_85 -->
-            <xacro:if value="${gripper_requested}">
-                <xacro:include filename="$(find neo_simulation2)/components/arm/robotiq_gripper.urdf.xacro"/>
-            </xacro:if>
-
-            <!-- Also include if gripper_type is specified (for MoveIt compatibility) -->
-            <xacro:if value="${gripper_type_value == '2f_140' or gripper_type_value == '2f_85'}">
+            <xacro:if value="${gripper_requested or gripper_type_value == '2f_140' or gripper_type_value == '2f_85'}">
                 <xacro:include filename="$(find neo_simulation2)/components/arm/robotiq_gripper.urdf.xacro"/>
             </xacro:if>
 

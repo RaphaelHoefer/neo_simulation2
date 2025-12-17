@@ -168,7 +168,7 @@ def launch_setup(context: LaunchContext, my_neo_robot_arg, my_neo_env_arg, robot
     gripper_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["robotiq_gripper", "-c", "/controller_manager"],
+        arguments=["robotiq_gripper_controller", "-c", "/controller_manager", "--controller-manager-timeout", "30"],
     )
 
     # See Issue: https://github.com/ros2/rclpy/issues/1287

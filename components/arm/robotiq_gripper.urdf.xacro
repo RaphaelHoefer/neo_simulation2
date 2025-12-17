@@ -19,23 +19,56 @@
                 name="RobotiqGripperHardwareInterface"
                 prefix=""
                 parent="neo_gripper_mount_link"
-                sim_gazebo="false"
-                include_ros2_control="false"
+                sim_gazebo="true"
+                include_ros2_control="true"
                 use_fake_hardware="false"
                 com_port="/dev/ttyUSB0">
                 <origin xyz="0 0 0" rpy="0 0 -${pi / 2}"/>
             </xacro:robotiq_gripper>
 
-            <!-- Provide a simple Gazebo ros2_control block for the gripper -->
-            <ros2_control name="robotiq_gripper" type="system">
-                <hardware>
-                    <plugin>gazebo_ros2_control/GazeboSystem</plugin>
-                </hardware>
-                <joint name="finger_joint">
-                    <command_interface name="position"/>
-                    <state_interface name="position"/>
-                    <state_interface name="velocity"/>
-                </joint>
-            </ros2_control>
+            <!-- Gazebo-specific material properties for gripper -->
+            <gazebo reference="robotiq_140_base_link">
+                <material>Gazebo/DarkGrey</material>
+            </gazebo>
+
+            <gazebo reference="left_outer_knuckle">
+                <material>Gazebo/Grey</material>
+            </gazebo>
+
+            <gazebo reference="left_outer_finger">
+                <material>Gazebo/Black</material>
+            </gazebo>
+
+            <gazebo reference="left_inner_knuckle">
+                <material>Gazebo/Black</material>
+            </gazebo>
+
+            <gazebo reference="left_inner_finger">
+                <material>Gazebo/Black</material>
+            </gazebo>
+
+            <gazebo reference="left_inner_finger_pad">
+                <material>Gazebo/FlatBlack</material>
+            </gazebo>
+
+            <gazebo reference="right_outer_knuckle">
+                <material>Gazebo/Grey</material>
+            </gazebo>
+
+            <gazebo reference="right_outer_finger">
+                <material>Gazebo/Black</material>
+            </gazebo>
+
+            <gazebo reference="right_inner_knuckle">
+                <material>Gazebo/Black</material>
+            </gazebo>
+
+            <gazebo reference="right_inner_finger">
+                <material>Gazebo/Black</material>
+            </gazebo>
+
+            <gazebo reference="right_inner_finger_pad">
+                <material>Gazebo/FlatBlack</material>
+            </gazebo>
 
 </robot>
