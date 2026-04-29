@@ -49,6 +49,14 @@ def launch_setup(context: LaunchContext, my_neo_robot_arg, my_neo_env_arg, robot
     use_gripper = gripper_arg.perform(context)
     use_sim_time = True
 
+    # Add YCB fruit model collection to GAZEBO_MODEL_PATH (downloaded via sea-bass/ycb-tools)
+    ycb_model_path = os.path.expanduser('~/ycb-tools/models/ycb')
+    existing_gazebo_path = os.environ.get('GAZEBO_MODEL_PATH', '')
+    if os.path.isdir(ycb_model_path):
+        os.environ['GAZEBO_MODEL_PATH'] = (
+            f"{ycb_model_path}:{existing_gazebo_path}" if existing_gazebo_path else ycb_model_path
+        )
+
     # Set GAZEBO_MODEL_PATH for gripper meshes if gripper is enabled
     if use_gripper == 'true':
         gripper_model_path = os.path.expanduser('~/gripper_ws/install/robotiq_description/share')
